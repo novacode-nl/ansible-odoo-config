@@ -1,0 +1,1 @@
+{{ HOST }} ansible_ssh_host={{ DOMAIN.TLD or IP-ADDRESS }} ansible_ssh_user=root

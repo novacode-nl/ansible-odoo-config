@@ -1,0 +1,8 @@
+- name: {{ CUSTOMER_PROJECT }} - {{ ENV }} - apticron
+  hosts: {{ HOST }}
+  become: yes
+  roles:
+    - kosssi.kosssi_apticron
+  vars:
+    apticron_email: {{ mail@example.com }}
+    apticron_diff_only: "1"

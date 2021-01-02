@@ -1,0 +1,91 @@
+- name: {{ CUSTOMER_PROJECT }} - {{ ENV }} - Nginx
+  hosts: {{ HOST }}
+  become: yes
+  pre_tasks:
+    - name: apt-get -y install python3-certbot-nginx (certbot renew nginx plugin)
+      raw: apt-get -y install python3-certbot-nginx
+      changed_when: False
+  roles:
+    - role: geerlingguy.certbot
+      ansible_python_interpreter: python3
+    - role: geerlingguy.nginx
+  vars:
+    certbot_admin_email: {{ mail@example.com }}
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services: []
+    certbot_auto_renew_options: "--quiet --no-self-upgrade --nginx"
+    certbot_certs:
+      - domains:
+          - {{ DOMAIN.TLD }}
+    nginx_worker_processes: "auto"
+    nginx_upstreams:
+      - name: odoo
+        servers:
+          - "127.0.0.1:8069"
+      - name: odoo_longpolling
+        servers:
+          - "127.0.0.1:8072"
+    nginx_vhosts:
+      - listen: "80"
+        server_name: "{{ DOMAIN.TLD }}"
+        # server_name: "odoo.example.com"
+        state: "present"
+        filename: "http_{{ DOMAIN.TLD }}.conf"
+        # filename: "http_odoo.exmaple.com.conf"
+        extra_parameters: |
+          rewrite ^(.*) https://$host$1 permanent;
+      - listen: "443 ssl http2"
+        server_name: "{{ DOMAIN.TLD }}"
+        # server_name: "odoo.example.com"
+        filename: "{{ DOMAIN.TLD }}.conf"
+        # filename: "odoo.example.com.conf"
+        state: "present"
+        access_log: "/var/log/nginx/odoo.access.log"
+        error_log: "/var/log/nginx/odoo.error.log"
+        extra_parameters: |
+          proxy_read_timeout 720s;
+          proxy_connect_timeout 720s;
+          proxy_send_timeout 720s;
+          proxy_buffering off;
+          proxy_ignore_client_abort off;
+
+          proxy_set_header X-Forwarded-Host $host;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Real-IP $remote_addr;
+
+          location / {
+              proxy_pass http://odoo;
+          }
+          location /longpolling {
+              proxy_pass http://odoo_longpolling;
+          }
+          # Restrict access to database manager
+          location ~* /web/database/manager {
+              allow {{ IP_ADDRESS }};
+              deny all;
+              proxy_pass http://odoo;
+          }
+
+          ssl_certificate     /etc/letsencrypt/live/{{ DOMAIN.TLD }}/fullchain.pem;
+          ssl_certificate_key /etc/letsencrypt/live/{{ DOMAIN.TLD }}/privkey.pem;
+          ssl_protocols TLSv1.2 TLSv1.3;
+          ssl_prefer_server_ciphers on;
+          ssl_ciphers EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA512:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:ECDH+AESGCM:ECDH+AES256:DH+AESGCM:DH+AES256:RSA+AESGCM:!aNULL:!eNULL:!LOW:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS;
+
+          ssl_session_cache shared:SSL:1m; # holds approx 4000 sessions
+          ssl_session_timeout 1h; # 1 hour during which sessions can be re-used.
+
+          # Set HSTS to 365 days https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+          add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
+
+          # common gzip
+          gzip_types text/css text/scss text/plain text/xml application/xml application/json application/javascript;
+          gzip on;
+  tasks:
+    - name: Test secure connection to SSL domain.
+      uri:
+        url: https://{{ DOMAIN.TLD }}
+        status_code: 200
+      delegate_to: localhost
+      become: false

@@ -1,0 +1,17 @@
+- name: {{ CUSTOMER_PROJECT }} - {{ ENV }} - ssmtp
+  hosts: {{ HOST }}
+  become: yes
+  roles:
+    - role: sansible.ssmtp
+      sansible_ssmtp_group: ssmtp_user
+      sansible_ssmtp_user: ssmtp_user
+      sansible_ssmtp_mailserver_host: {{ SMTP_HOST }}
+      # sansible_ssmtp_mailserver_host: smtp.example.com
+      sansible_ssmtp_mailserver_port: {{ SMTP_PORT }}
+      sansible_ssmtp_mailserver_username: {{ SMTP_USERNAME }}
+      sansible_ssmtp_mailserver_password: !vault |
+          {{ ANSIBLE_VAULT_ENCRYPTED }}
+      # sansible_ssmtp_mailserver_password: {{ SMTP_PASSWORD }}
+      sansible_ssmtp_rewritedomain: {{ SMTP_HOSTNAME }}
+      # sansible_ssmtp_rewritedomain: example.com
+      sansible_ssmtp_mailserver_fromlineoverride: "YES"

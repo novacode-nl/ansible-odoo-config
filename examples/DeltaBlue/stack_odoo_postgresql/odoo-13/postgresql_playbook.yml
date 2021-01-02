@@ -1,0 +1,18 @@
+# DeltaBlue - Odoo Ansible playbook
+# =================================
+#
+# Serves a DeltaBlue application with 2 stacks:
+# 1. Python (Odoo)
+# 2. PostgreSQL
+#
+# The Python stack is already configured to connect to PostgreSQL.
+# So skip the installation PostgreSQL, hence: `odoo_install_postgresql`: False
+
+- name: PostgreSQL
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  roles:
+    - role: anxs.postgresql
+      postgresql_version: 12
+      postgresql_ssl: on

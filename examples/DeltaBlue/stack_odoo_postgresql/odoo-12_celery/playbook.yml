@@ -1,0 +1,97 @@
+# DeltaBlue - Odoo Ansible playbook
+# =================================
+#
+# Serves a DeltaBlue "application" with 2 stacks:
+# 1. Python (Odoo)
+# 2. PostgreSQL
+#
+# The Python stack is already configured to connect to PostgreSQL.
+# So skip the installation PostgreSQL, hence:
+#  `odoo_install_postgresql`: False
+#
+# DEPLOYED SERVICES
+# -----------------
+# 1. Celery controlled by Supervisor.
+#    This is a requirement for the Odoo Celery module:
+#    https://apps.odoo.com/apps/modules/12.0/celery/
+#
+# REQUIREMENTS
+# ------------
+# 1. Ensure celery is in file: {{ odoo_addons_dir }}/requirements.txt
+
+- name: Odoo
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  # TODO REMOVEME if above works - {{ odoo_addons_dir }}/requirements.txt
+  # pre_tasks:
+  #   - name: Install Celery (python3 package)
+  #     raw: pip3 install celery
+  #     changed_when: False
+  roles:
+    - role: geerlingguy.supervisor
+      supervisor_started: true
+      supervisor_enabled: true
+      supervisor_programs:
+        - name: 'celery_default'
+          command: /usr/local/bin/celery -A odoo worker -l info
+          state: present
+          configuration: |
+            directory = /home/odoo/odoo/addons/subtree/odoo-celery/celery
+            autostart=true
+            autorestart=true
+            stdout_logfile=/var/log/supervisor/celery_default.log
+            user=odoo
+    - role: ansible-odoo
+      dependencies:
+        - geerlingguy.supervisor
+
+      odoo_version: 12.0
+
+      # SSH
+      odoo_user_generate_ssh_key: True
+      odoo_user_ssh_known_hosts:
+        - github.com
+
+      # PostgreSQL (on a different DeltaBlue provisioned container)
+      odoo_install_postgresql: False
+      odoo_config_db_host: 127.0.0.1
+      # odoo_config_db_user: odoo # default odoo
+
+      # Replaced by DeltaBlue scenario/task (DB_PASSWORD)
+      # Don't change this, so search/replacement works.
+      odoo_config_db_passwd: False
+
+      # Default admin_passwd (should be replaced)        
+      # odoo_config_admin_passwd: DefaultAdminPassword
+
+      odoo_logfile: "/var/log/odoo/odoo.log"
+
+      # Odoo Community
+      # odoo_repo_url:
+      # odoo_repo_rev: 12.0
+
+      # Odoo Enterprise
+      # odoo_enterprise_repo_url:
+      # odoo_enterprise_repo_rev: 12.0
+
+      # Odoo Addons
+      # odoo_addons_repo_url:
+      # odoo_addons_repo_rev: 12.0
+
+      # Example addons_path
+      # odoo_config_addons_path:
+      #   - "/home/{{ odoo_user }}/odoo/enterprise"
+      #   - "/home/{{ odoo_user }}/odoo/addons/subtree/odoo-celery"
+      #   - "/home/{{ odoo_user }}/odoo/addons/custom"
+      #   - "/home/{{ odoo_user }}/odoo/addons/external"
+      #   - "/home/{{ odoo_user }}/odoo/server/addons"
+
+      # XXX Change with a dedicated Celery user!
+      # odoo_config_custom:
+      #   celery_user: admin
+      #   celery_password: admin
+      #   celery_sudo: True
+
+      # odoo_addons_debian_packages:
+      #   - python-xlwt

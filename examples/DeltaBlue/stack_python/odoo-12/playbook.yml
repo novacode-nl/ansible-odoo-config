@@ -1,0 +1,45 @@
+# DeltaBlue - Odoo Ansible playbook
+# =================================
+#
+# Serves a DeltaBlue application with 1 stack: Python (Odoo)
+# Install PostgreSQL (default `odoo_install_postgresql`: True)
+
+- name: Odoo
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  roles:
+    - role: ansible-odoo
+      odoo_version: 12.0
+
+      # SSH
+      odoo_user_generate_ssh_key: True
+      odoo_user_ssh_known_hosts:
+        - github.com
+
+      # PostgreSQL (install PostgreSQL on the same container)
+      # odoo_config_db_host: 127.0.0.1
+      # odoo_config_db_user: odoo # Default odoo
+      # odoo_config_db_passwd: odoo # Injected by DeltaBlue scenario/action
+
+      # Default admin_passwd (should be replaced)        
+      # odoo_config_admin_passwd: DefaultAdminPassword
+
+      # Odoo Community
+      # odoo_repo_url:
+      # odoo_repo_rev: 12.0
+
+      # Odoo Enterprise
+      # odoo_enterprise_repo_url:
+      # odoo_enterprise_repo_rev: 12.0
+
+      # Odoo Addons
+      # odoo_addons_repo_url:
+      # odoo_addons_repo_rev: 12.0
+
+      # Example addons_path
+      # odoo_config_addons_path:
+      #   - "/home/{{ odoo_user }}/odoo/enterprise"
+      #   - "/home/{{ odoo_user }}/odoo/addons/custom"
+      #   - "/home/{{ odoo_user }}/odoo/addons/external"
+      #   - "/home/{{ odoo_user }}/odoo/server/addons"

@@ -1,0 +1,8 @@
+# from galaxy
+- src: anxs.postgresql
+  version: v1.11.1
+
+# GitHub
+- src: https://github.com/novacode-nl/ansible-odoo.git
+  version: novacode-20.02.1
+  name: ansible-odoo

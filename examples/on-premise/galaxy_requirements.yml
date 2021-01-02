@@ -1,0 +1,17 @@
+# from galaxy
+- src: arillso.logrotate
+- src: geerlingguy.nginx
+- src: kosssi.kosssi_apticron
+# - src: cimon-io.postgresql-client
+- src: sansible.ssmtp
+- src: weareinteractive.ufw
+
+# GitHub
+## Odoo
+- src: https://github.com/novacode-nl/ansible-odoo.git
+  version: novacode-20.12.1
+  name: ansible-odoo
+## PostgreSQL v12
+- src: https://github.com/ANXS/postgresql.git
+  version: v1.12.0
+  name: anxs.postgresql
