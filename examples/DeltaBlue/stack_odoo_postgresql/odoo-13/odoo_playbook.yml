@@ -40,7 +40,7 @@
       # Default admin_passwd (should be replaced)        
       # odoo_config_admin_passwd: DefaultAdminPassword
 
-      odoo_logfile: "/var/log/odoo/odoo.log"
+      odoo_config_logfile: "/var/log/odoo/odoo.log"
 
       # CPU/cores: 2
       # max. workers = (2 * 2) + 1. For now 3 as safe setting.
