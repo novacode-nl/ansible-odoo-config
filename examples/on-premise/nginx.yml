@@ -46,7 +46,6 @@
           proxy_read_timeout 720s;
           proxy_connect_timeout 720s;
           proxy_send_timeout 720s;
-          proxy_buffering off;
           proxy_ignore_client_abort off;
 
           proxy_set_header X-Forwarded-Host $host;
