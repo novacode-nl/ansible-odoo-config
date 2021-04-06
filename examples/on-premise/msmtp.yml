@@ -1,0 +1,16 @@
+- name: {{ CUSTOMER_PROJECT }} - {{ ENV }} - msmtp
+  hosts: {{ HOST }}
+  become: yes
+  roles:
+    - role: chriswayg.msmtp-mailer
+      msmtp_default_account: "notifications"
+      msmtp_alias_default : {{ DEFAULT_ALIAS }}
+      msmtp_accounts:
+        - account: notifications
+          host: {{ SMTP_HOST }}
+          port: {{ SMTP_PORT }}
+          auth: "on"
+          from: {{ FROM_EMAIL}
+          user: {{ SMTP_USERNAME }}
+          password: !vault |
+            {{ ANSIBLE_VAULT_ENCRYPTED }}
